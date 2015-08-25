@@ -7,7 +7,7 @@ using Jace.Util;
 
 namespace Jace.Execution
 {
-    public class Interpreter : IExecutor
+    public class Interpreter : IExecutor<double>
     {
         public Func<IDictionary<string, double>, double> BuildFormula(Operation operation, 
             IFunctionRegistry functionRegistry)
@@ -35,9 +35,9 @@ namespace Jace.Execution
                 IntegerConstant constant = (IntegerConstant)operation;
                 return constant.Value;
             }
-            else if (operation.GetType() == typeof(FloatingPointConstant))
+            else if (operation.GetType() == typeof(FloatingPointConstant<double>))
             {
-                FloatingPointConstant constant = (FloatingPointConstant)operation;
+                FloatingPointConstant<double> constant = (FloatingPointConstant<double>)operation;
                 return constant.Value;
             }
             else if (operation.GetType() == typeof(Variable))

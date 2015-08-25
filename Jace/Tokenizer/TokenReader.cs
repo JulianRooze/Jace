@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Jace.Operations;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -14,17 +15,24 @@ namespace Jace.Tokenizer
         private readonly CultureInfo cultureInfo;
         private readonly char decimalSeparator;
         private readonly char argumentSeparator;
+        private readonly IFloatingPointConstantProvider floatingPointConstantProvider;
 
         public TokenReader() 
             : this(CultureInfo.CurrentCulture)
         {
         }
 
-        public TokenReader(CultureInfo cultureInfo)
+        public TokenReader(CultureInfo cultureInfo) 
+            : this(cultureInfo, new FloatingPointConstantProvider())
         {
-            this.cultureInfo = cultureInfo;
-            this.decimalSeparator = cultureInfo.NumberFormat.NumberDecimalSeparator[0];
-            this.argumentSeparator = cultureInfo.TextInfo.ListSeparator[0];
+        }
+
+        public TokenReader(CultureInfo cultureInfo, IFloatingPointConstantProvider floatingPointConstantProvider)
+        {
+          this.cultureInfo = cultureInfo;
+          this.decimalSeparator = cultureInfo.NumberFormat.NumberDecimalSeparator[0];
+          this.argumentSeparator = cultureInfo.TextInfo.ListSeparator[0];
+          this.floatingPointConstantProvider = floatingPointConstantProvider;
         }
 
         /// <summary>
@@ -65,11 +73,10 @@ namespace Jace.Tokenizer
                     }
                     else
                     {
-                        double doubleValue;
-                        if (double.TryParse(buffer, NumberStyles.Float | NumberStyles.AllowThousands,
-                            cultureInfo, out doubleValue))
+                        object floatingPointValue;
+                        if (this.floatingPointConstantProvider.TryParse(buffer, cultureInfo, out floatingPointValue))
                         {
-                            tokens.Add(new Token() { TokenType = TokenType.FloatingPoint, Value = doubleValue, StartPosition = startPosition, Length = i - startPosition });
+                            tokens.Add(new Token() { TokenType = TokenType.FloatingPoint, Value = floatingPointValue, StartPosition = startPosition, Length = i - startPosition });
                             isFormulaSubPart = false;
                         }
                         else if (buffer == "-")

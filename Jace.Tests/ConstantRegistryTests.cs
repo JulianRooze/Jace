@@ -26,7 +26,7 @@ namespace Jace.Tests
             
             registry.RegisterConstant("test", 42.0);
 
-            ConstantInfo functionInfo = registry.GetConstantInfo("test");
+            var functionInfo = registry.GetConstantInfo("test");
             
             Assert.IsNotNull(functionInfo);
             Assert.AreEqual("test", functionInfo.ConstantName);

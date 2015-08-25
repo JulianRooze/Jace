@@ -10,18 +10,22 @@ using Jace.Operations;
 
 namespace Jace.Util
 {
+    public class FuncAdapter : FuncAdapter<double>
+    {
+
+    }
     /// <summary>
     /// An adapter for creating a func wrapper around a func accepting a dictionary. The wrapper
     /// can create a func that has an argument for every expected key in the dictionary.
     /// </summary>
-    public class FuncAdapter
+    public class FuncAdapter<T>
     {
         /// <summary>
         /// Wrap the parsed the function into a delegate of the specified type. The delegate must accept 
         /// the parameters defined in the parameters collection. The order of parameters is respected as defined
         /// in parameters collection.
         /// <br/>
-        /// The function must accept a dictionary of strings and doubles as input. The values passed to the 
+        /// The function must accept a dictionary of strings and Ts as input. The values passed to the 
         /// wrapping function will be passed to the function using the dictionary. The keys in the dictionary
         /// are the names of the parameters of the wrapping function.
         /// </summary>
@@ -29,7 +33,7 @@ namespace Jace.Util
         /// <param name="function">The function that must be wrapped.</param>
         /// <returns>A delegate instance of the required type.</returns>
         public Delegate Wrap(IEnumerable<Jace.Execution.ParameterInfo> parameters, 
-            Func<Dictionary<string, double>, double> function)
+            Func<Dictionary<string, T>, T> function)
         {
             Jace.Execution.ParameterInfo[] parameterArray = parameters.ToArray();
 
@@ -47,8 +51,8 @@ namespace Jace.Util
 
         //    TypeBuilder typeBuilder = moduleBuilder.DefineType("MyTestClass");
 
-        //    MethodBuilder method = typeBuilder.DefineMethod("MyTestMethod", MethodAttributes.Static, typeof(double),
-        //       new Type[] { typeof(FuncAdapterArguments), typeof(int), typeof(double) });
+        //    MethodBuilder method = typeBuilder.DefineMethod("MyTestMethod", MethodAttributes.Static, typeof(T),
+        //       new Type[] { typeof(FuncAdapterArguments), typeof(int), typeof(T) });
 
         //    ILGenerator generator = method.GetILGenerator();
         //    GenerateMethodBody(generator, new List<Calculator.Execution.ParameterInfo>() { 
@@ -63,13 +67,13 @@ namespace Jace.Util
 
 #if !NETFX_CORE
         private Delegate GenerateDelegate(Jace.Execution.ParameterInfo[] parameterArray,
-            Func<Dictionary<string, double>, double> function)
+            Func<Dictionary<string, T>, T> function)
         {
             Type[] parameterTypes = GetParameterTypes(parameterArray);
 
             Type delegateType = GetDelegateType(parameterArray);
 
-            DynamicMethod method = new DynamicMethod("FuncWrapperMethod", typeof(double),
+            DynamicMethod method = new DynamicMethod("FuncWrapperMethod", typeof(T),
                 parameterTypes, typeof(FuncAdapterArguments));
 
             ILGenerator generator = method.GetILGenerator();
@@ -92,22 +96,22 @@ namespace Jace.Util
             parameterTypes[0] = typeof(FuncAdapterArguments);
 
             for (int i = 0; i < parameters.Length; i++)
-                parameterTypes[i + 1] = (parameters[i].DataType == DataType.FloatingPoint) ? typeof(double) : typeof(int);
+                parameterTypes[i + 1] = (parameters[i].DataType == DataType.FloatingPoint) ? typeof(T) : typeof(int);
 
             return parameterTypes;
         }
 
         private void GenerateMethodBody(ILGenerator generator, Jace.Execution.ParameterInfo[] parameters,
-            Func<Dictionary<string, double>, double> function)
+            Func<Dictionary<string, T>, T> function)
         {
-            Type dictionaryType = typeof(Dictionary<string, double>);
+            Type dictionaryType = typeof(Dictionary<string, T>);
             ConstructorInfo dictionaryConstructorInfo = dictionaryType.GetConstructor(Type.EmptyTypes);
 
             FieldInfo functionField = typeof(FuncAdapterArguments).GetField("function", 
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
             generator.DeclareLocal(dictionaryType);
-            generator.DeclareLocal(typeof(double));
+            generator.DeclareLocal(typeof(T));
 
             generator.Emit(OpCodes.Newobj, dictionaryConstructorInfo);
             generator.Emit(OpCodes.Stloc_0);
@@ -138,7 +142,7 @@ namespace Jace.Util
                 if (parameter.DataType != DataType.FloatingPoint)
                     generator.Emit(OpCodes.Conv_R8);
 
-                generator.Emit(OpCodes.Callvirt, dictionaryType.GetMethod("Add", new Type[] { typeof(string), typeof(double) }));
+                generator.Emit(OpCodes.Callvirt, dictionaryType.GetMethod("Add", new Type[] { typeof(string), typeof(T) }));
             }
 
             generator.Emit(OpCodes.Ldarg_0);
@@ -150,15 +154,15 @@ namespace Jace.Util
         }
 #else
         private Delegate GenerateDelegate(Jace.Execution.ParameterInfo[] parameterArray,
-            Func<Dictionary<string, double>, double> function)
+            Func<Dictionary<string, T>, T> function)
         {
             Type delegateType = GetDelegateType(parameterArray);
-            Type dictionaryType = typeof(Dictionary<string, double>);
+            Type dictionaryType = typeof(Dictionary<string, T>);
 
-            LabelTarget returnLabel = Expression.Label(typeof(double));
+            LabelTarget returnLabel = Expression.Label(typeof(T));
 
             ParameterExpression dictionaryExpression =
-                Expression.Variable(typeof(Dictionary<string, double>), "dictionary");
+                Expression.Variable(typeof(Dictionary<string, T>), "dictionary");
             BinaryExpression dictionaryAssignExpression =
                 Expression.Assign(dictionaryExpression, Expression.New(dictionaryType));
 
@@ -170,13 +174,13 @@ namespace Jace.Util
             for (int i = 0; i < parameterArray.Length; i++)
             {
                 // Create parameter expression for each func parameter
-                Type parameterType = parameterArray[i].DataType == DataType.FloatingPoint ? typeof(double) : typeof(int);
+                Type parameterType = parameterArray[i].DataType == DataType.FloatingPoint ? typeof(T) : typeof(int);
                 parameterExpressions[i] = Expression.Parameter(parameterType, parameterArray[i].Name);
 
                 methodBody.Add(Expression.Call(dictionaryExpression,
-                    dictionaryType.GetRuntimeMethod("Add", new Type[] { typeof(string), typeof(double) }),
+                    dictionaryType.GetRuntimeMethod("Add", new Type[] { typeof(string), typeof(T) }),
                     Expression.Constant(parameterArray[i].Name),
-                    Expression.Convert(parameterExpressions[i], typeof(double)))
+                    Expression.Convert(parameterExpressions[i], typeof(T)))
                     );
             }
 
@@ -200,17 +204,17 @@ namespace Jace.Util
 
             Type[] typeArguments = new Type[parameters.Length + 1];
             for (int i = 0; i < parameters.Length; i++)
-                typeArguments[i] = (parameters[i].DataType == DataType.FloatingPoint) ? typeof(double) : typeof(int);
-            typeArguments[typeArguments.Length - 1] = typeof(double);
+                typeArguments[i] = (parameters[i].DataType == DataType.FloatingPoint) ? typeof(T) : typeof(int);
+            typeArguments[typeArguments.Length - 1] = typeof(T);
 
             return funcType.MakeGenericType(typeArguments);
         }
 
         private class FuncAdapterArguments
         {
-            private readonly Func<Dictionary<string, double>, double> function;
+            private readonly Func<Dictionary<string, T>, T> function;
 
-            public FuncAdapterArguments(Func<Dictionary<string, double>, double> function)
+            public FuncAdapterArguments(Func<Dictionary<string, T>, T> function)
             {
                 this.function = function;
             }

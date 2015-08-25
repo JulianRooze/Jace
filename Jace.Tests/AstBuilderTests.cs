@@ -125,7 +125,7 @@ namespace Jace.Tests
             Multiplication multiplication = (Multiplication)operation;
 
             Assert.AreEqual(new IntegerConstant(10), multiplication.Argument1);
-            Assert.AreEqual(new FloatingPointConstant(2.0), multiplication.Argument2);
+            Assert.AreEqual(new FloatingPointConstant<double>(2.0), multiplication.Argument2);
         }
 
         [TestMethod]
@@ -160,7 +160,7 @@ namespace Jace.Tests
 
             Modulo modulo = (Modulo)operation;
 
-            Assert.AreEqual(new FloatingPointConstant(2.7), modulo.Dividend);
+            Assert.AreEqual(new FloatingPointConstant<double>(2.7), modulo.Dividend);
             Assert.AreEqual(new IntegerConstant(3), modulo.Divisor);
         }
 
@@ -274,7 +274,7 @@ namespace Jace.Tests
             Assert.AreEqual(new IntegerConstant(2), addition.Argument1);
             Assert.AreEqual(new IntegerConstant(3), addition.Argument2);
 
-            Assert.AreEqual(new FloatingPointConstant(4.9), multiplication.Argument2);
+            Assert.AreEqual(new FloatingPointConstant<double>(4.9), multiplication.Argument2);
         }
 
         [TestMethod]
@@ -295,7 +295,7 @@ namespace Jace.Tests
             });
 
             Multiplication multiplication = (Multiplication)operation;
-            Assert.AreEqual(new FloatingPointConstant(5.3), multiplication.Argument1);
+            Assert.AreEqual(new FloatingPointConstant<double>(5.3), multiplication.Argument1);
 
             UnaryMinus unaryMinus = (UnaryMinus)multiplication.Argument2;
 

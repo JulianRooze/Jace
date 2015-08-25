@@ -49,6 +49,8 @@
     <Compile Include="Execution\ConstantInfo.cs" />
     <Compile Include="Execution\ConstantRegistry.cs" />
     <Compile Include="DataType.cs" />
+    <Compile Include="Execution\DecimalDynamicCompiler.cs" />
+    <Compile Include="Execution\DecimalInterpreter.cs" />
     <Compile Include="Execution\DynamicCompiler.cs" />
     <Compile Include="Execution\ExecutionMode.cs" />
     <Compile Include="Execution\FormulaBuilder.cs" />
@@ -60,6 +62,7 @@
     <Compile Include="Execution\FunctionInfo.cs" />
     <Compile Include="Execution\FunctionRegistry.cs" />
     <Compile Include="FormulaContext.cs" />
+    <Compile Include="ICalculationEngine.cs" />
     <Compile Include="Operations\Addition.cs" />
     <Compile Include="Operations\Constant.cs" />
     <Compile Include="Operations\Division.cs" />

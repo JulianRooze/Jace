@@ -8,7 +8,15 @@ using Jace.Tokenizer;
 
 namespace Jace
 {
-    public class AstBuilder
+    public class AstBuilder : AstBuilder<double>
+    {
+        public AstBuilder(IFunctionRegistry functionRegistry)
+            : base(functionRegistry)
+        {
+        }
+    }
+
+    public class AstBuilder<T>
     {
         private readonly IFunctionRegistry functionRegistry;
 
@@ -51,7 +59,7 @@ namespace Jace
                         resultStack.Push(new IntegerConstant((int)token.Value));
                         break;
                     case TokenType.FloatingPoint:
-                        resultStack.Push(new FloatingPointConstant((double)token.Value));
+                        resultStack.Push(new FloatingPointConstant<T>((T)token.Value));
                         break;
                     case TokenType.Text:
                         if (functionRegistry.IsFunctionName((string)token.Value))
@@ -148,7 +156,7 @@ namespace Jace
             }
             else
             {
-                if (operatorStack.Count > 0 && operatorStack.Peek().TokenType == TokenType.LeftBracket 
+                if (operatorStack.Count > 0 && operatorStack.Peek().TokenType == TokenType.LeftBracket
                     && !(currentToken.HasValue && currentToken.Value.TokenType == TokenType.ArgumentSeparator))
                     throw new ParseException(string.Format("No matching right bracket found for the left " +
                         "bracket at position {0}.", operatorStack.Peek().StartPosition));
@@ -262,7 +270,7 @@ namespace Jace
                 if (functionRegistry.IsFunctionName(functionName))
                 {
                     FunctionInfo functionInfo = functionRegistry.GetFunctionInfo(functionName);
-                            
+
                     List<Operation> operations = new List<Operation>();
                     for (int i = 0; i < functionInfo.NumberOfParameters; i++)
                         operations.Add(resultStack.Pop());
@@ -286,7 +294,7 @@ namespace Jace
 
         private void VerifyResultStack()
         {
-            if(resultStack.Count > 1)
+            if (resultStack.Count > 1)
             {
                 Operation[] operations = resultStack.ToArray();
 
@@ -299,10 +307,10 @@ namespace Jace
                         IntegerConstant constant = (IntegerConstant)operation;
                         throw new ParseException(string.Format("Unexpected integer constant \"{0}\" found.", constant.Value));
                     }
-                    else if (operation.GetType() == typeof(FloatingPointConstant))
+                    else if (operation.GetType() == typeof(FloatingPointConstant<T>))
                     {
-                        FloatingPointConstant constant = (FloatingPointConstant)operation;
-                        throw new ParseException(string.Format("Unexpected floating point constant \"{0}\" found.", constant.Value)); 
+                        FloatingPointConstant<T> constant = (FloatingPointConstant<T>)operation;
+                        throw new ParseException(string.Format("Unexpected floating point constant \"{0}\" found.", constant.Value));
                     }
                 }
 

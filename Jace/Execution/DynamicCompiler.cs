@@ -11,7 +11,7 @@ using Jace.Util;
 namespace Jace.Execution
 {
 #if !NETFX_CORE
-    public class DynamicCompiler : IExecutor
+    public class DynamicCompiler : IExecutor<double>
     {
         public double Execute(Operation operation, IFunctionRegistry functionRegistry)
         {
@@ -72,9 +72,9 @@ namespace Jace.Execution
                 generator.Emit(OpCodes.Ldc_I4, constant.Value);
                 generator.Emit(OpCodes.Conv_R8);
             }
-            else if (operation.GetType() == typeof(FloatingPointConstant))
+            else if (operation.GetType() == typeof(FloatingPointConstant<double>))
             {
-                FloatingPointConstant constant = (FloatingPointConstant)operation;
+                FloatingPointConstant<double> constant = (FloatingPointConstant<double>)operation;
 
                 generator.Emit(OpCodes.Ldc_R8, constant.Value);
             }
@@ -301,7 +301,7 @@ namespace Jace.Execution
         }
     }
 #else
-    public class DynamicCompiler : IExecutor
+    public class DynamicCompiler : IExecutor<double>
     {
         public double Execute(Operation operation, IFunctionRegistry functionRegistry)
         {

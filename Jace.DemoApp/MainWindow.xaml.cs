@@ -55,7 +55,7 @@ namespace Jace.DemoApp
                     variables.Add(variable.Name, value);
                 }
 
-                IExecutor executor = new Interpreter();
+                var executor = new Interpreter();
                 double result = executor.Execute(operation, null, variables);
 
                 resultTextBox.Text = "" + result;
@@ -171,7 +171,7 @@ namespace Jace.DemoApp
             }
             else
             {
-                FloatingPointConstant floatingPointConstant = operation as FloatingPointConstant;
+                var floatingPointConstant = operation as FloatingPointConstant<double>;
                 if (floatingPointConstant != null)
                 {
                     value = "(" + floatingPointConstant.Value + ")";

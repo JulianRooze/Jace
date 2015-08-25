@@ -19,4 +19,18 @@ namespace Jace
 
         public IFunctionRegistry FunctionRegistry { get; private set; }
     }
+
+    public class DecimalFormulaContext
+    {
+      public DecimalFormulaContext(IDictionary<string, decimal> variables,
+          IFunctionRegistry functionRegistry)
+      {
+        this.Variables = variables;
+        this.FunctionRegistry = functionRegistry;
+      }
+
+      public IDictionary<string, decimal> Variables { get; private set; }
+
+      public IFunctionRegistry FunctionRegistry { get; private set; }
+    }
 }

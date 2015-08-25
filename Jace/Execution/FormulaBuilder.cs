@@ -9,9 +9,9 @@ using Jace.Util;
 
 namespace Jace.Execution
 {
-    public class FormulaBuilder
+    public class FormulaBuilder<T>
     {
-        private readonly CalculationEngine engine;
+        private readonly ICalculationEngine<T> engine;
 
         private string formulaText;
         private DataType? resultDataType;
@@ -24,7 +24,7 @@ namespace Jace.Execution
         /// A calculation engine instance that can be used for interpreting and executing 
         /// the formula.
         /// </param>
-        internal FormulaBuilder(string formulaText, CalculationEngine engine)
+        public FormulaBuilder(string formulaText, ICalculationEngine<T> engine)
         {
             this.parameters = new List<ParameterInfo>();
             this.formulaText = formulaText;
@@ -38,7 +38,7 @@ namespace Jace.Execution
         /// <param name="name">The name of the parameter.</param>
         /// <param name="dataType">The date type of the parameter.</param>
         /// <returns>The <see cref="FormulaBuilder"/> instance.</returns>
-        public FormulaBuilder Parameter(string name, DataType dataType)
+        public FormulaBuilder<T> Parameter(string name, DataType dataType)
         {
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException("name");
@@ -58,7 +58,7 @@ namespace Jace.Execution
         /// </summary>
         /// <param name="dataType">The result data type for the formula.</param>
         /// <returns>The <see cref="FormulaBuilder"/> instance.</returns>
-        public FormulaBuilder Result(DataType dataType)
+        public FormulaBuilder<T> Result(DataType dataType)
         {
             if (resultDataType.HasValue)
                 throw new InvalidOperationException("The result can only be defined once for a given formula.");
@@ -77,9 +77,9 @@ namespace Jace.Execution
             if (!resultDataType.HasValue)
                 throw new Exception("Please define a result data type for the formula.");
 
-            Func<Dictionary<string, double>, double> formula = engine.Build(formulaText);
+            var formula = engine.Build(formulaText);
 
-            FuncAdapter adapter = new FuncAdapter();
+            var adapter = new FuncAdapter<T>();
             return adapter.Wrap(parameters, variables => formula(variables));
         }
     }

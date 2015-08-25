@@ -6,11 +6,11 @@ using Jace.Operations;
 
 namespace Jace.Execution
 {
-    public interface IExecutor
+    public interface IExecutor<T>
     {
-        double Execute(Operation operation, IFunctionRegistry functionRegistry);
-        double Execute(Operation operation, IFunctionRegistry functionRegistry, IDictionary<string, double> variables);
+        T Execute(Operation operation, IFunctionRegistry functionRegistry);
+        T Execute(Operation operation, IFunctionRegistry functionRegistry, IDictionary<string, T> variables);
 
-        Func<IDictionary<string, double>, double> BuildFormula(Operation operation, IFunctionRegistry functionRegistry);
+        Func<IDictionary<string, T>, T> BuildFormula(Operation operation, IFunctionRegistry functionRegistry);
     }
 }

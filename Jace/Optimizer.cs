@@ -7,11 +7,11 @@ using Jace.Execution;
 
 namespace Jace
 {
-    public class Optimizer
+    public class Optimizer<T>
     {
-        private readonly IExecutor executor;
+        private readonly IExecutor<T> executor;
 
-        public Optimizer(IExecutor executor)
+        public Optimizer(IExecutor<T> executor)
         {
             this.executor = executor;
         }
@@ -19,10 +19,10 @@ namespace Jace
         public Operation Optimize(Operation operation, IFunctionRegistry functionRegistry)
         {
             if (!operation.DependsOnVariables && operation.GetType() != typeof(IntegerConstant)
-                && operation.GetType() != typeof(FloatingPointConstant))
+                && operation.GetType() != typeof(FloatingPointConstant<T>))
             {
-                double result = executor.Execute(operation, functionRegistry);
-                return new FloatingPointConstant(result);
+                T result = executor.Execute(operation, functionRegistry);
+                return new FloatingPointConstant<T>(result);
             }
             else
             {
