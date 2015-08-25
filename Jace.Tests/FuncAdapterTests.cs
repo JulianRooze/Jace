@@ -24,7 +24,7 @@ namespace Jace.Tests
         [TestMethod]
         public void TestFuncAdapterWrap()
         {
-            FuncAdapter adapter = new FuncAdapter();
+            var adapter = new FuncAdapter<double>();
 
             List<ParameterInfo> parameters = new List<ParameterInfo>() { 
                 new ParameterInfo() { Name = "test1", DataType = DataType.Integer },
@@ -41,7 +41,7 @@ namespace Jace.Tests
         [TestMethod]
         public void TestFuncAdapterWrapAndGC()
         {
-            FuncAdapter adapter = new FuncAdapter();
+            var adapter = new FuncAdapter<double>();
 
             List<ParameterInfo> parameters = new List<ParameterInfo>() { 
                 new ParameterInfo() { Name = "test1", DataType = DataType.Integer },
@@ -61,7 +61,7 @@ namespace Jace.Tests
         [TestMethod]
         public void TestFourArguments()
         {
-            FuncAdapter adapater = new FuncAdapter();
+            var adapater = new FuncAdapter<double>();
 
             List<ParameterInfo> parameters = new List<ParameterInfo>() { 
                 new ParameterInfo() { Name = "test1", DataType = DataType.Integer },

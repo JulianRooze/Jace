@@ -8,7 +8,7 @@ namespace Jace.Util
     /// <summary>
     /// Utility methods of Jace.NET that can be used throughout the engine.
     /// </summary>
-    public  static class EngineUtil
+    internal static class EngineUtil
     {
         static internal IDictionary<string, T> ConvertVariableNamesToLowerCase<T>(IDictionary<string, T> variables)
         {

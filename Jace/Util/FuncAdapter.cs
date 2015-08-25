@@ -10,10 +10,6 @@ using Jace.Operations;
 
 namespace Jace.Util
 {
-    public class FuncAdapter : FuncAdapter<double>
-    {
-
-    }
     /// <summary>
     /// An adapter for creating a func wrapper around a func accepting a dictionary. The wrapper
     /// can create a func that has an argument for every expected key in the dictionary.

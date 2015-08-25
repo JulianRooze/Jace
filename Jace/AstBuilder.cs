@@ -8,14 +8,6 @@ using Jace.Tokenizer;
 
 namespace Jace
 {
-    public class AstBuilder : AstBuilder<double>
-    {
-        public AstBuilder(IFunctionRegistry functionRegistry)
-            : base(functionRegistry)
-        {
-        }
-    }
-
     public class AstBuilder<T>
     {
         private readonly IFunctionRegistry functionRegistry;
