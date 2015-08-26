@@ -66,7 +66,7 @@ namespace Jace
 
             if (executionMode == ExecutionMode.Interpreted)
             {
-                executor = new DecimalInterpreter();
+                executor = new Interpreter<decimal>(DecimalNumericalOperations.Instance);
             }
             else if (executionMode == ExecutionMode.Compiled)
             {
@@ -79,7 +79,7 @@ namespace Jace
                     "executionMode");
             }
 
-            optimizer = new Optimizer<decimal>(new DecimalInterpreter()); // We run the optimizer with the interpreter 
+            optimizer = new Optimizer<decimal>(new Interpreter<decimal>(DecimalNumericalOperations.Instance)); // We run the optimizer with the interpreter 
 
             // Register the default constants of Jace.NET into the constant registry
             RegisterDefaultConstants();

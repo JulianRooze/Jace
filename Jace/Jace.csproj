@@ -51,7 +51,6 @@
     <Compile Include="Execution\ConstantInfo.cs" />
     <Compile Include="Execution\ConstantRegistry.cs" />
     <Compile Include="DataType.cs" />
-    <Compile Include="Execution\DecimalInterpreter.cs" />
     <Compile Include="Execution\DynamicCompiler.cs" />
     <Compile Include="Execution\ExecutionMode.cs" />
     <Compile Include="Execution\ExpressionExecutor.cs" />
@@ -60,6 +59,7 @@
     <Compile Include="Execution\IExecutor.cs" />
     <Compile Include="Execution\IFunctionRegistry.cs" />
     <Compile Include="Execution\Interpreter.cs" />
+    <Compile Include="Execution\INumericalOperations.cs" />
     <Compile Include="Execution\ParameterInfo.cs" />
     <Compile Include="Execution\FunctionInfo.cs" />
     <Compile Include="Execution\FunctionRegistry.cs" />
