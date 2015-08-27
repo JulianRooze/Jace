@@ -11,10 +11,17 @@ using TestClass = NUnit.Framework.TestFixtureAttribute;
 using TestMethod = NUnit.Framework.TestAttribute;
 #else
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Jace.Execution;
 #endif
 
 namespace Jace.Tests
 {
+    public class TokenReader : TokenReader<double>
+    {
+        internal TokenReader() : base(DoubleNumericalOperations.Instance) { }
+        internal TokenReader(CultureInfo cultureInfo) : base(cultureInfo, DoubleNumericalOperations.Instance) { }
+    }
+
     [TestClass]
     public class TokenReaderTests
     {

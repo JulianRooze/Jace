@@ -47,7 +47,6 @@
     <Compile Include="AstBuilder.cs" />
     <Compile Include="CalculationEngine.cs" />
     <Compile Include="DecimalCalculationEngine.cs" />
-    <Compile Include="Execution\ConstantHelper.cs" />
     <Compile Include="Execution\ConstantInfo.cs" />
     <Compile Include="Execution\ConstantRegistry.cs" />
     <Compile Include="DataType.cs" />

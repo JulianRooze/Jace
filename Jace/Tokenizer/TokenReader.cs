@@ -1,4 +1,5 @@
-﻿using Jace.Operations;
+﻿using Jace.Execution;
+using Jace.Operations;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -10,29 +11,24 @@ namespace Jace.Tokenizer
     /// <summary>
     /// A token reader that converts the input string in a list of tokens.
     /// </summary>
-    public class TokenReader
+    public class TokenReader<T>
     {
         private readonly CultureInfo cultureInfo;
         private readonly char decimalSeparator;
         private readonly char argumentSeparator;
-        private readonly IFloatingPointConstantProvider floatingPointConstantProvider;
+        private readonly INumericalOperations<T> numericalOperations;
 
-        public TokenReader() 
-            : this(CultureInfo.CurrentCulture)
+        public TokenReader(INumericalOperations<T> numericalOperations) 
+            : this(CultureInfo.CurrentCulture, numericalOperations)
         {
         }
 
-        public TokenReader(CultureInfo cultureInfo) 
-            : this(cultureInfo, new FloatingPointConstantProvider())
-        {
-        }
-
-        public TokenReader(CultureInfo cultureInfo, IFloatingPointConstantProvider floatingPointConstantProvider)
+        public TokenReader(CultureInfo cultureInfo, INumericalOperations<T> numericalOperations)
         {
           this.cultureInfo = cultureInfo;
           this.decimalSeparator = cultureInfo.NumberFormat.NumberDecimalSeparator[0];
           this.argumentSeparator = cultureInfo.TextInfo.ListSeparator[0];
-          this.floatingPointConstantProvider = floatingPointConstantProvider;
+          this.numericalOperations = numericalOperations;
         }
 
         /// <summary>
@@ -73,8 +69,8 @@ namespace Jace.Tokenizer
                     }
                     else
                     {
-                        object floatingPointValue;
-                        if (this.floatingPointConstantProvider.TryParse(buffer, cultureInfo, out floatingPointValue))
+                        T floatingPointValue;
+                        if (this.numericalOperations.TryParseFloatingPoint(buffer, cultureInfo, out floatingPointValue))
                         {
                             tokens.Add(new Token() { TokenType = TokenType.FloatingPoint, Value = floatingPointValue, StartPosition = startPosition, Length = i - startPosition });
                             isFormulaSubPart = false;

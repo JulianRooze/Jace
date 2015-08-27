@@ -40,7 +40,7 @@ namespace Jace.Execution
             if (operation.GetType() == typeof(IntegerConstant))
             {
                 IntegerConstant constant = (IntegerConstant)operation;
-                return (T)ConstantHelper.Convert<T>(constant.Value);
+                return this.numericalOperations.ConvertFromInt32(constant.Value);
             }
             else if (operation.GetType() == typeof(FloatingPointConstant<T>))
             {
