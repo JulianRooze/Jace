@@ -13,13 +13,15 @@ namespace Jace.Execution
 
     public class ExpressionExecutor<T> : IExecutor<T>
     {
-        private readonly Func<IDictionary<string, T>, IFunctionRegistry, IFormulaContext<T>> formulaContextFactory;
+        private readonly Func<IDictionary<string, T>, IFunctionRegistry, FormulaContext<T>> formulaContextFactory;
+        private readonly INumericalOperations<T> numericOperations;
 
-        public ExpressionExecutor(Func<IDictionary<string, T>, IFunctionRegistry, IFormulaContext<T>> formulaContextFactory)
+        public ExpressionExecutor(Func<IDictionary<string, T>, IFunctionRegistry, FormulaContext<T>> formulaContextFactory, INumericalOperations<T> numericOperations)
         {
             if (formulaContextFactory == null) throw new ArgumentNullException("formulaContextFactory");
 
             this.formulaContextFactory = formulaContextFactory;
+            this.numericOperations = numericOperations;
         }
 
         public T Execute(Operation operation, IFunctionRegistry functionRegistry)
@@ -45,17 +47,17 @@ namespace Jace.Execution
             };
         }
 
-        private Func<IFormulaContext<T>, T> BuildFormulaInternal(Operation operation,
+        private Func<FormulaContext<T>, T> BuildFormulaInternal(Operation operation,
             IFunctionRegistry functionRegistry)
         {
-            ParameterExpression contextParameter = Expression.Parameter(typeof(IFormulaContext<T>), "context");
+            ParameterExpression contextParameter = Expression.Parameter(typeof(FormulaContext<T>), "context");
 
             LabelTarget returnLabel = Expression.Label(typeof(T));
 
-            return Expression.Lambda<Func<IFormulaContext<T>, T>>(
+            return Expression.Lambda<Func<FormulaContext<T>, T>>(
                 Expression.Block(
                     Expression.Return(returnLabel, GenerateMethodBody(operation, contextParameter, functionRegistry)),
-                    Expression.Label(returnLabel, Expression.Constant(ConstantHelper.Convert<T>(0)))
+                    Expression.Label(returnLabel, Expression.Constant(this.numericOperations.Constants.Zero))
                 ),
                 contextParameter
             ).Compile();
@@ -81,7 +83,7 @@ namespace Jace.Execution
             }
             else if (operation.GetType() == typeof(Variable))
             {
-                Type contextType = typeof(IFormulaContext<T>);
+                Type contextType = typeof(FormulaContext<T>);
                 Type dictionaryType = typeof(IDictionary<string, T>);
 
                 Variable variable = (Variable)operation;
@@ -107,7 +109,7 @@ namespace Jace.Execution
                         Expression.Return(returnLabel, value),
                         throwException
                     ),
-                    Expression.Label(returnLabel, Expression.Constant(ConstantHelper.Convert<T>(0)))
+                    Expression.Label(returnLabel, Expression.Constant(this.numericOperations.Constants.Zero))
                 );
             }
             else if (operation.GetType() == typeof(Multiplication))
@@ -171,8 +173,8 @@ namespace Jace.Execution
                 Expression argument2 = GenerateMethodBody(lessThan.Argument2, contextParameter, functionRegistry);
 
                 return Expression.Condition(Expression.LessThan(argument1, argument2),
-                    Expression.Constant(ConstantHelper.Convert<T>(1)),
-                    Expression.Constant(ConstantHelper.Convert<T>(0)));
+                    Expression.Constant(this.numericOperations.Constants.One),
+                    Expression.Constant(this.numericOperations.Constants.Zero));
             }
             else if (operation.GetType() == typeof(LessOrEqualThan))
             {
@@ -181,8 +183,8 @@ namespace Jace.Execution
                 Expression argument2 = GenerateMethodBody(lessOrEqualThan.Argument2, contextParameter, functionRegistry);
 
                 return Expression.Condition(Expression.LessThanOrEqual(argument1, argument2),
-                    Expression.Constant(ConstantHelper.Convert<T>(1)),
-                    Expression.Constant(ConstantHelper.Convert<T>(0)));
+                    Expression.Constant(this.numericOperations.Constants.One),
+                    Expression.Constant(this.numericOperations.Constants.Zero));
             }
             else if (operation.GetType() == typeof(GreaterThan))
             {
@@ -191,8 +193,8 @@ namespace Jace.Execution
                 Expression argument2 = GenerateMethodBody(greaterThan.Argument2, contextParameter, functionRegistry);
 
                 return Expression.Condition(Expression.GreaterThan(argument1, argument2),
-                    Expression.Constant(ConstantHelper.Convert<T>(1)),
-                    Expression.Constant(ConstantHelper.Convert<T>(0)));
+                    Expression.Constant(this.numericOperations.Constants.One),
+                    Expression.Constant(this.numericOperations.Constants.Zero));
             }
             else if (operation.GetType() == typeof(GreaterOrEqualThan))
             {
@@ -201,8 +203,8 @@ namespace Jace.Execution
                 Expression argument2 = GenerateMethodBody(greaterOrEqualThan.Argument2, contextParameter, functionRegistry);
 
                 return Expression.Condition(Expression.GreaterThanOrEqual(argument1, argument2),
-                    Expression.Constant(ConstantHelper.Convert<T>(1)),
-                    Expression.Constant(ConstantHelper.Convert<T>(0)));
+                    Expression.Constant(this.numericOperations.Constants.One),
+                    Expression.Constant(this.numericOperations.Constants.Zero));
             }
             else if (operation.GetType() == typeof(Equal))
             {
@@ -211,8 +213,8 @@ namespace Jace.Execution
                 Expression argument2 = GenerateMethodBody(equal.Argument2, contextParameter, functionRegistry);
 
                 return Expression.Condition(Expression.Equal(argument1, argument2),
-                    Expression.Constant(ConstantHelper.Convert<T>(1)),
-                    Expression.Constant(ConstantHelper.Convert<T>(0)));
+                    Expression.Constant(this.numericOperations.Constants.One),
+                    Expression.Constant(this.numericOperations.Constants.Zero));
             }
             else if (operation.GetType() == typeof(NotEqual))
             {
@@ -221,8 +223,8 @@ namespace Jace.Execution
                 Expression argument2 = GenerateMethodBody(notEqual.Argument2, contextParameter, functionRegistry);
 
                 return Expression.Condition(Expression.NotEqual(argument1, argument2),
-                    Expression.Constant(ConstantHelper.Convert<T>(1)),
-                    Expression.Constant(ConstantHelper.Convert<T>(0)));
+                    Expression.Constant(this.numericOperations.Constants.One),
+                    Expression.Constant(this.numericOperations.Constants.Zero));
             }
             else if (operation.GetType() == typeof(Function))
             {
