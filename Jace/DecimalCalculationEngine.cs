@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Jace
 {
-    public class DecimalCalculationEngine : CalculationEngine<decimal>
+    public class DecimalCalculationEngine : CalculationEngineBase<decimal>
     {
         /// <summary>
         /// Creates a new instance of the <see cref="CalculationEngine"/> class with
@@ -55,32 +55,9 @@ namespace Jace
         /// <param name="cacheEnabled">Enable or disable caching of mathematical formulas.</param>
         /// <param name="optimizerEnabled">Enable or disable optimizing of formulas.</param>
         public DecimalCalculationEngine(CultureInfo cultureInfo, ExecutionMode executionMode, bool cacheEnabled, bool optimizerEnabled)
+            : base(cultureInfo, cacheEnabled, optimizerEnabled, 
+            CreateExecutor(executionMode), new Optimizer<decimal>(new Interpreter<decimal>(DecimalNumericalOperations.Instance)), DecimalNumericalOperations.Instance)
         {
-            this.executionFormulaCache = new MemoryCache<string, Func<IDictionary<string, decimal>, decimal>>();
-            this.FunctionRegistry = new FunctionRegistry(false);
-            this.ConstantRegistry = new ConstantRegistry<decimal>(false);
-            this.cultureInfo = cultureInfo;
-            this.cacheEnabled = cacheEnabled;
-            this.optimizerEnabled = optimizerEnabled;
-            this.floatingPointConstantProvider = new DecimalFloatingPointConstantProvider();
-
-            if (executionMode == ExecutionMode.Interpreted)
-            {
-                executor = new Interpreter<decimal>(DecimalNumericalOperations.Instance);
-            }
-            else if (executionMode == ExecutionMode.Compiled)
-            {
-                //executor = new DecimalDynamicCompiler();
-                executor = new ExpressionExecutor<decimal>((variables, functionRegistry) => new DecimalFormulaContext(variables, functionRegistry));
-            }
-            else
-            {
-                throw new ArgumentException(string.Format("Unsupported execution mode \"{0}\".", executionMode),
-                    "executionMode");
-            }
-
-            optimizer = new Optimizer<decimal>(new Interpreter<decimal>(DecimalNumericalOperations.Instance)); // We run the optimizer with the interpreter 
-
             // Register the default constants of Jace.NET into the constant registry
             RegisterDefaultConstants();
 
@@ -88,6 +65,22 @@ namespace Jace
             RegisterDefaultFunctions();
         }
 
+        private static IExecutor<decimal> CreateExecutor(ExecutionMode executionMode)
+        {
+            if (executionMode == ExecutionMode.Interpreted)
+            {
+                return new Interpreter<decimal>(DecimalNumericalOperations.Instance);
+            }
+            else if (executionMode == ExecutionMode.Compiled)
+            {
+                return new ExpressionExecutor<decimal>((variables, functionRegistry) => new FormulaContext<decimal>(variables, functionRegistry), DecimalNumericalOperations.Instance);
+            }
+            else
+            {
+                throw new ArgumentException(string.Format("Unsupported execution mode \"{0}\".", executionMode),
+                    "executionMode");
+            }
+        }
 
         private void RegisterDefaultFunctions()
         {

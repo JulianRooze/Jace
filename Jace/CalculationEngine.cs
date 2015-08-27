@@ -15,7 +15,7 @@ namespace Jace
     /// mathematical formulas into .NET Delegates and to calculate the result.
     /// It can be configured to run in a number of modes based on the constructor parameters choosen.
     /// </summary>
-    public class CalculationEngine : CalculationEngine<double>
+    public class CalculationEngine : CalculationEngineBase<double>
     {
         /// <summary>
         /// Creates a new instance of the <see cref="CalculationEngine"/> class with
@@ -60,44 +60,37 @@ namespace Jace
         /// <param name="executionMode">The execution mode that must be used for formula execution.</param>
         /// <param name="cacheEnabled">Enable or disable caching of mathematical formulas.</param>
         /// <param name="optimizerEnabled">Enable or disable optimizing of formulas.</param>
-        public CalculationEngine(CultureInfo cultureInfo, ExecutionMode executionMode, bool cacheEnabled, bool optimizerEnabled)
+        public CalculationEngine(CultureInfo cultureInfo, ExecutionMode executionMode, bool cacheEnabled, bool optimizerEnabled) :
+            base(cultureInfo, cacheEnabled, optimizerEnabled,
+            CreateExecutor(executionMode),
+            new Optimizer<double>(new Interpreter()), DoubleNumericalOperations.Instance)
         {
-            this.executionFormulaCache = new MemoryCache<string, Func<IDictionary<string, double>, double>>();
-            this.FunctionRegistry = new FunctionRegistry(false);
-            this.ConstantRegistry = new ConstantRegistry<double>(false);
-            this.cultureInfo = cultureInfo;
-            this.cacheEnabled = cacheEnabled;
-            this.optimizerEnabled = optimizerEnabled;
-            this.floatingPointConstantProvider = new FloatingPointConstantProvider();
+            // Register the default constants of Jace.NET into the constant registry
+            RegisterDefaultConstants();
+            // Register the default functions of Jace.NET into the function registry
+            RegisterDefaultFunctions();
+        }
 
+        private static IExecutor<double> CreateExecutor(ExecutionMode executionMode)
+        {
             if (executionMode == ExecutionMode.Interpreted)
             {
-                executor = new Interpreter();
+                return new Interpreter();
             }
             else if (executionMode == ExecutionMode.Compiled)
             {
-                #if !NETFX_CORE
-                executor = new DynamicCompiler();
-                #else
-                executor = new ExpressionExecutor<double>((variables, functionRegistry) => new FormulaContext(variables, functionRegistry));
-                #endif
-
+#if !NETFX_CORE
+                return new DynamicCompiler();
+#else
+                return new ExpressionExecutor<double>((variables, functionRegistry) => new FormulaContext<double>(variables, functionRegistry), DoubleNumericalOperations.Instance);
+#endif
             }
             else
             {
                 throw new ArgumentException(string.Format("Unsupported execution mode \"{0}\".", executionMode),
                     "executionMode");
             }
-
-            optimizer = new Optimizer<double>(new Interpreter()); // We run the optimizer with the interpreter 
-
-            // Register the default constants of Jace.NET into the constant registry
-            RegisterDefaultConstants();
-
-            // Register the default functions of Jace.NET into the function registry
-            RegisterDefaultFunctions();
         }
-
 
         private void RegisterDefaultFunctions()
         {
@@ -136,19 +129,41 @@ namespace Jace
         }
     }
 
-    public class CalculationEngine<T> : ICalculationEngine<T>
+    public abstract class CalculationEngineBase<T> : ICalculationEngine<T>
     {
-        protected IExecutor<T> executor;
-        protected Optimizer<T> optimizer;
-        protected CultureInfo cultureInfo;
-        protected MemoryCache<string, Func<IDictionary<string, T>, T>> executionFormulaCache;
-        protected bool cacheEnabled;
-        protected bool optimizerEnabled;
-        protected IFloatingPointConstantProvider floatingPointConstantProvider;
+        private readonly IExecutor<T> executor;
+        private readonly Optimizer<T> optimizer;
+        private readonly CultureInfo cultureInfo;
+        private readonly MemoryCache<string, Func<IDictionary<string, T>, T>> executionFormulaCache;
+        private readonly bool cacheEnabled;
+        private readonly bool optimizerEnabled;
+        private readonly INumericalOperations<T> numericalOperations;
 
         public IFunctionRegistry FunctionRegistry { get; protected set; }
 
         public IConstantRegistry<T> ConstantRegistry { get; protected set; }
+
+        protected CalculationEngineBase
+        (
+            CultureInfo cultureInfo,
+            bool cacheEnabled,
+            bool optimizerEnabled,
+            IExecutor<T> executor,
+            Optimizer<T> optimizer,
+            INumericalOperations<T> numericalOperations
+        )
+        {
+            this.executionFormulaCache = new MemoryCache<string, Func<IDictionary<string, T>, T>>();
+
+            this.FunctionRegistry = new FunctionRegistry(false);
+            this.ConstantRegistry = new ConstantRegistry<T>(false);
+            this.cultureInfo = cultureInfo;
+            this.cacheEnabled = cacheEnabled;
+            this.optimizerEnabled = optimizerEnabled;
+            this.executor = executor;
+            this.optimizer = optimizer;
+            this.numericalOperations = numericalOperations;
+        }
 
         public T Calculate(string formulaText)
         {
@@ -305,7 +320,7 @@ namespace Jace
         /// <returns>The abstract syntax tree of the formula.</returns>
         private Operation BuildAbstractSyntaxTree(string formulaText)
         {
-            TokenReader tokenReader = new TokenReader(cultureInfo, floatingPointConstantProvider);
+            var tokenReader = new TokenReader<T>(cultureInfo, this.numericalOperations);
             List<Token> tokens = tokenReader.Read(formulaText);
 
             var astBuilder = new AstBuilder<T>(FunctionRegistry);
