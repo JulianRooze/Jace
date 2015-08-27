@@ -27,24 +27,24 @@ namespace Jace.Execution
         public Func<IDictionary<string, double>, double> BuildFormula(Operation operation,
             IFunctionRegistry functionRegistry)
         {
-            Func<FormulaContext, double> func = BuildFormulaInternal(operation, functionRegistry);
+            Func<FormulaContext<double>, double> func = BuildFormulaInternal(operation, functionRegistry);
             return variables =>
                 {
                     variables = EngineUtil.ConvertVariableNamesToLowerCase(variables);
-                    FormulaContext context = new FormulaContext(variables, functionRegistry);
+                    var context = new FormulaContext<double>(variables, functionRegistry);
                     return func(context);
                 };
         }
 
-        private Func<FormulaContext, double> BuildFormulaInternal(Operation operation,
+        private Func<FormulaContext<double>, double> BuildFormulaInternal(Operation operation,
             IFunctionRegistry functionRegistry)
         {
             DynamicMethod method = new DynamicMethod("MyCalcMethod", typeof(double),
-                new Type[] { typeof(FormulaContext) });
+                new Type[] { typeof(FormulaContext<double>) });
             GenerateMethodBody(method, operation, functionRegistry);
 
-            Func<FormulaContext, double> function =
-                (Func<FormulaContext, double>)method.CreateDelegate(typeof(Func<FormulaContext, double>));
+            Func<FormulaContext<double>, double> function =
+                (Func<FormulaContext<double>, double>)method.CreateDelegate(typeof(Func<FormulaContext<double>, double>));
 
             return function;
         }
@@ -88,7 +88,7 @@ namespace Jace.Execution
                 Label returnLabel = generator.DefineLabel();
 
                 generator.Emit(OpCodes.Ldarg_0);
-                generator.Emit(OpCodes.Callvirt, typeof(FormulaContext).GetProperty("Variables").GetGetMethod());
+                generator.Emit(OpCodes.Callvirt, typeof(FormulaContext<double>).GetProperty("Variables").GetGetMethod());
                 generator.Emit(OpCodes.Ldstr, variable.Name);
                 generator.Emit(OpCodes.Ldloca_S, (byte)0);
                 generator.Emit(OpCodes.Callvirt, dictionaryType.GetMethod("TryGetValue", new Type[] { typeof(string), typeof(double).MakeByRefType() }));
@@ -271,7 +271,7 @@ namespace Jace.Execution
                 Type funcType = GetFuncType(functionInfo.NumberOfParameters);
 
                 generator.Emit(OpCodes.Ldarg_0);
-                generator.Emit(OpCodes.Callvirt, typeof(FormulaContext).GetProperty("FunctionRegistry").GetGetMethod());
+                generator.Emit(OpCodes.Callvirt, typeof(FormulaContext<double>).GetProperty("FunctionRegistry").GetGetMethod());
                 generator.Emit(OpCodes.Ldstr, function.FunctionName);
                 generator.Emit(OpCodes.Callvirt, typeof(IFunctionRegistry).GetMethod("GetFunctionInfo", new Type[] { typeof(string) }));
                 generator.Emit(OpCodes.Callvirt, typeof(FunctionInfo).GetProperty("Function").GetGetMethod());
